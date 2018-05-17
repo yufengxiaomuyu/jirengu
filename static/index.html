@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Load More</title>
+		<style>
+          	ul,li {
+          		margin: 0;
+          		padding: 0;
+          	}
+            #ct li {
+            	list-style: none;
+                padding: 10px;
+                margin-top: 10px;
+                border: 1px solid #ccc;
+                cursor: pointer; 
+            }
+            .btn {
+            	text-align: center;
+            }
+            .btn #load-more {
+            	display: inline-block;
+            	margin: 10px auto;
+                padding: 10px; 
+            	border: 1px solid #E27272;
+            	border-radius: 3px;
+            	text-decoration: none;
+                color: #E27272;
+                cursor: pointer;
+            }
+            .btn #load-more:hover {
+                background-color: green;
+                color: #fff; 
+            }
+		</style>
+	</head>
+	<body>
+		<ul id="ct">
+		</ul>
+		<div class="btn">
+		    <a id="load-more" href="#">加载更多</a>	
+		</div>
+		
+        <script>
+            
+            /*定义接口
+            1.url:/loadMore
+            2.入参：index:0,len:5}
+            3.回参：
+            {
+                status: 1,//1代表正常，0代表出错
+                data: [6,7,8,9,10]     
+            }
+            */
+
+			var ct = document.querySelector("#ct");
+            var loadMore = document.querySelector("#load-more");
+            var index = 1;
+            var len = 5;
+            var isLoading = false;
+            loadMore.addEventListener("click",function(e){
+                e.preventDefault();
+                if (isLoading) return;
+                isLoading = true;
+                ajax(
+                    "/loadMore",
+                    {
+                        index: index,
+                        len: len  
+                    },
+                    function(data){
+                        appendData(data);
+                        index += len;   
+                    },
+                    function () {
+                        console.log("出错了")
+                    }
+                );
+            });
+
+            function ajax(url,json,onSuccess,onError){
+                var xhr = new XMLHttpRequest();
+                var arr = [];
+                for (key in json) {
+                    arr.push(key + "=" + json[key])   
+                };
+                url += "?" + arr.join("&");
+                xhr.open("get",url);
+                xhr.send();
+                xhr.onload = function(){
+                    if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
+                        onSuccess(JSON.parse(this.response));
+                    } else {
+                        onError(); 
+                    };
+                isLoading = false;
+                };   
+            };
+
+            function appendData(data) {
+                var fragment = document.createDocumentFragment();
+                for (i = 0;i < data.length;i++) {
+                    var node = document.createElement("li");
+                    node.innerText = data[i];
+                    fragment.appendChild(node); 
+                }
+                ct.appendChild(fragment);           
+            }; 
+
+	    </script>
+
+	</body>
+	</html>	
